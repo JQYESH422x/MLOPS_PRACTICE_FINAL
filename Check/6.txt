@@ -1,0 +1,71 @@
+DL 6 
+
+import tensorflow as tf
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras import layers, models
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.utils import to_categorical
+import matplotlib.pyplot as plt
+
+# load data
+(X_train, y_train), (X_test, y_test) = cifar10.load_data()
+
+# Normalize pixel values to [0, 1]
+X_train = X_train / 255.0
+X_test = X_test / 255.0
+
+# Convert labels to one-hot encoding
+y_train = to_categorical(y_train, 10)
+y_test = to_categorical(y_test, 10)
+
+print(X_train.shape)
+print(X_test.shape)
+print(y_train.shape)
+print(y_train.shape)
+
+# Load the model
+base_model = VGG16(
+    weights="imagenet",
+    include_top=False,
+    input_shape=(32, 32, 3)
+)
+base_model.trainable = False
+
+# Build model
+model = models.Sequential([
+    base_model,
+    layers.Flatten(),
+    layers.Dense(256, activation="relu"),
+    layers.Dense(10, activation="softmax")
+])
+
+# model compile
+model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+
+# model training
+history = model.fit(X_train, y_train, epochs=5, batch_size=64, validation_data=(X_test, y_test))
+
+# Step 6: Evaluate the model
+test_loss, test_acc = model.evaluate(X_test, y_test)
+
+# Plot training history
+plt.figure(figsize=(12, 4))
+
+plt.subplot(1, 2, 1)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Loss Over Epochs')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+
+plt.subplot(1, 2, 2)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Accuracy Over Epochs')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+
+plt.tight_layout()
+plt.show()

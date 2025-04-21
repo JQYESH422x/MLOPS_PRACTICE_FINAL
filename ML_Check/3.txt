@@ -1,0 +1,50 @@
+MLOPS 3
+
+Train_and_save.py
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import joblib
+import os
+
+# 1. Data & train
+iris = load_iris(as_frame=True)
+X_train, X_val, y_train, y_val = train_test_split(
+    iris.data, iris.target, test_size=0.2, random_state=42
+)
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# 2. Evaluate (optional)
+acc = accuracy_score(y_val, model.predict(X_val))
+print(f"Validation accuracy: {acc:.3f}")
+
+# 3. Save
+os.makedirs("models", exist_ok=True)
+joblib.dump(model, "models/iris_rf.pkl")
+print("Model saved to models/iris_rf.pkl")
+
+---------------------------------------------------
+load_and_predict.py
+import joblib
+from sklearn.datasets import load_iris
+
+# 1. Load saved model
+model = joblib.load("models/iris_rf.pkl")
+
+# 2. Load Iris dataset & prepare a sample
+iris = load_iris()
+sample = iris.data[0].reshape(1, -1)
+actual_class = iris.target[0]
+class_names = iris.target_names
+
+# 3. Predict
+pred = model.predict(sample)[0]
+
+# 4. Display actual vs predicted
+print(f"Input Features : {iris.feature_names}")
+print(f"Sample Values  : {iris.data[0]}")
+print(f"Actual Class   : {actual_class} ({class_names[actual_class]})")
+print(f"Predicted Class: {pred} ({class_names[pred]})")
+
